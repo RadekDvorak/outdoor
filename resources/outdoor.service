@@ -1,0 +1,13 @@
+[Unit]
+Description=BigClown OpenWeatherMap to MQTT
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/outdoor
+User=outdoor
+Group=outdoor
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
