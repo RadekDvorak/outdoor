@@ -3,6 +3,8 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate slog;
+extern crate sloggers;
 extern crate uom;
 extern crate url;
 
@@ -12,6 +14,9 @@ use std::time::Duration;
 use rumq_client;
 use rumq_client::eventloop;
 use rumq_client::MqttOptions;
+use sloggers::Build;
+use sloggers::terminal::{Destination, TerminalLoggerBuilder};
+use sloggers::types::Severity;
 use tokio::sync::mpsc::channel;
 
 use domain::current_weather;
@@ -33,6 +38,9 @@ mod weather_types;
 async fn main() -> Result<(), anyhow::Error> {
     let settings: arguments::Args = structopt::StructOpt::from_args();
 
+    let verbosity = settings.verbose;
+    let logger = create_logger(verbosity)?;
+
     let city_id = settings.city_id.to_string();
     let api_key = settings.api_key;
     let period = Duration::from_secs(settings.interval_secs.get().into());
@@ -48,7 +56,12 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let api_client = builder.build()?;
 
-    let handle_api = tokio::spawn(create_weather_fetcher(period, weather_tx, api_client));
+    let handle_api = tokio::spawn(create_weather_fetcher(
+        period,
+        weather_tx,
+        api_client,
+        logger.clone(),
+    ));
 
     let (requests_tx, requests_rx) = channel(10);
 
@@ -90,11 +103,12 @@ async fn main() -> Result<(), anyhow::Error> {
         humidity,
         requests_tx.clone(),
         units,
+        logger.clone(),
     );
 
     let handle_mqtt = tokio::spawn(publisher_task);
 
-    let handle_mqtt_loop = tokio::spawn(run_mqtt_loop(eventloop));
+    let handle_mqtt_loop = tokio::spawn(run_mqtt_loop(eventloop, logger.clone()));
 
     let error_msg: Option<String>;
     tokio::select!(
@@ -107,6 +121,15 @@ async fn main() -> Result<(), anyhow::Error> {
         None => Ok(()),
         Some(message) => anyhow::bail!("{}", message),
     }
+}
+
+fn create_logger(verbosity: u8) -> anyhow::Result<slog::Logger> {
+    let mut logger_builder = TerminalLoggerBuilder::new();
+    logger_builder.level(get_severity(verbosity));
+    logger_builder.destination(Destination::Stderr);
+    let logger = logger_builder.build()?;
+
+    Ok(logger)
 }
 
 fn create_connection_options(
@@ -127,4 +150,14 @@ fn create_connection_options(
         .set_throttle(Duration::from_secs(1));
 
     mqtt_options
+}
+
+fn get_severity(verbosity: u8) -> Severity {
+    match verbosity {
+        std::u8::MIN..=0 => Severity::Error,
+        1 => Severity::Warning,
+        2 => Severity::Info,
+        3 => Severity::Debug,
+        4..=std::u8::MAX => Severity::Trace,
+    }
 }

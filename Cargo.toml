@@ -19,6 +19,8 @@ structopt = { version = "^0.3.11" }
 tokio = { version = "^0.2", features = ["full"] }
 uom = "^0.27.0"
 url = "^2.1.1"
+sloggers = "^0.3.5"
+slog = "^2.5.2"
 
 [profile.release]
 lto = true

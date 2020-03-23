@@ -2,6 +2,8 @@ use std::future::Future;
 
 use futures_util::stream::StreamExt;
 use rumq_client::{EventLoopError, MqttEventLoop, Notification, QoS, Request};
+use serde::export::Formatter;
+use slog::Logger;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::time;
 use tokio::time::Duration;
@@ -11,12 +13,12 @@ use crate::app::publisher::{Humidity, Pressure, Temperature, Topic};
 use crate::arguments::Units;
 use crate::domain::current_weather::CurrentWeather;
 use crate::domain::interfaces::WeatherClient;
-use serde::export::Formatter;
 
 pub async fn create_weather_fetcher<T>(
     period: Duration,
     mut channel: Sender<CurrentWeather>,
     api_client: T,
+    logger: Logger,
 ) -> Result<(), anyhow::Error>
 where
     T: WeatherClient + 'static,
@@ -28,7 +30,9 @@ where
 
         let result = api_client.get_current_weather().await;
         match result {
-            Err(e) => println!("{:#?}", e),
+            Err(e) => {
+                slog::slog_error!(logger, "{:#?}", e);
+            }
             Ok(v) => {
                 channel.send(v).await?;
             }
@@ -36,37 +40,40 @@ where
     }
 }
 
-pub async fn run_mqtt_loop(mut event_loop: MqttEventLoop) -> Result<(), anyhow::Error> {
+pub async fn run_mqtt_loop(
+    mut event_loop: MqttEventLoop,
+    logger: Logger,
+) -> Result<(), anyhow::Error> {
     let mut stream = event_loop.stream();
 
     while let Some(notification) = stream.next().await {
         match notification {
             Notification::Connected => {
-                println!("Connected");
+                slog::slog_debug!(logger, "Connected");
             }
             Notification::Publish(_p) => {
-                println!("Publih = {:?}", _p);
+                slog::slog_debug!(logger, "Publih = {:?}", _p);
             }
             Notification::Puback(_pid) => {
-                println!("Puback = {:?}", _pid);
+                slog::slog_debug!(logger, "Puback = {:?}", _pid);
             }
             Notification::Pubcomp(_pcm) => {
-                println!("Pubcomp = {:?}", _pcm);
+                slog::slog_debug!(logger, "Pubcomp = {:?}", _pcm);
             }
             Notification::Pubrec(_prc) => {
-                println!("Pubrec = {:?}", _prc);
+                slog::slog_debug!(logger, "Pubrec = {:?}", _prc);
             }
             Notification::Suback(_suback) => {
-                println!("Suback = {:?}", _suback);
+                slog::slog_debug!(logger, "Suback = {:?}", _suback);
             }
             Notification::Unsuback(_usa) => {
-                println!("Unsuback = {:?}", _usa);
+                slog::slog_debug!(logger, "Unsuback = {:?}", _usa);
             }
             Notification::RequestsDone => {
-                println!("Requests Done");
+                slog::slog_debug!(logger, "Requests Done");
             }
             Notification::NetworkClosed => {
-                println!("Network closed");
+                slog::slog_debug!(logger, "Network closed");
             }
             Notification::StreamEnd(_err) => {
                 return Err(MqttTaskError(_err).into());
@@ -119,6 +126,7 @@ pub fn create_mqtt_publisher(
     humidity: Humidity,
     mut pub_humidity_tx: Sender<Request>,
     units: Units,
+    logger: Logger,
 ) -> impl Future<Output = ()> + 'static {
     let t_temp = temperature.get_value();
     let t_pressure = pressure.get_value();
@@ -141,9 +149,8 @@ pub fn create_mqtt_publisher(
                 &t_humidity,
             ));
 
-            let x = tokio::join!(r_temp, r_pressure, r_humidity);
-
-            println!("{:?}", x);
+            let completion_status = tokio::join!(r_temp, r_pressure, r_humidity);
+            slog::slog_debug!(logger, "Publisher completed with {:?}", completion_status);
         }
     }
 }

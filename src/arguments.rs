@@ -1,6 +1,7 @@
 use std::num::{NonZeroU16, NonZeroU32};
 use std::str::FromStr;
 use std::string::ParseError;
+
 use structopt::StructOpt;
 use uom::si::f32::ThermodynamicTemperature;
 use uom::si::thermodynamic_temperature;
@@ -12,8 +13,8 @@ use url::Url;
     about = "Publishes current weather from OpenWeatherMap to Hardwario/BigClown bus"
 )]
 pub struct Args {
-    #[structopt(short, long)]
-    pub debug: bool,
+    #[structopt(short="v", long, parse(from_occurrences))]
+    pub verbose: u8,
 
     /// API key from openweathermap.com
     #[structopt(env)]
