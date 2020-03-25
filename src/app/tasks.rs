@@ -91,22 +91,32 @@ impl std::fmt::Display for MqttTaskError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match &self.0 {
             EventLoopError::MqttState(state_error) => {
-                write!(f, "Mqtt State Error: {:?}", state_error);
+                write!(f, "Mqtt State Error: {:?}", state_error).unwrap_or_else(|_| {
+                    panic!("Failed to write error: Mqtt State Error: {:?}", state_error)
+                });
             }
             EventLoopError::Timeout(elapsed) => {
-                elapsed.fmt(f);
+                elapsed.fmt(f).unwrap_or_else(|_| {
+                    panic!("Failed to write: Timeout: {:?}", elapsed.to_string())
+                });
             }
             EventLoopError::Rumq(rumq_core_error) => {
-                write!(f, "Rumq Error: {:?}", rumq_core_error);
+                write!(f, "Rumq Error: {:?}", rumq_core_error).unwrap_or_else(|_| {
+                    panic!("Failed to write: Rumq Error: {:?}", rumq_core_error)
+                });
             }
             EventLoopError::Network(network_error) => {
-                write!(f, "Network Error: {:?}", network_error);
+                write!(f, "Network Error: {:?}", network_error).unwrap_or_else(|_| {
+                    panic!("Failed to write: Network Error: {:?}", network_error)
+                });
             }
             EventLoopError::Io(io_error) => {
-                write!(f, "IO Error: {:?}", io_error);
+                write!(f, "IO Error: {:?}", io_error)
+                    .unwrap_or_else(|_| panic!("Failed to write: IO Error: {:?}", io_error));
             }
             EventLoopError::StreamDone => {
-                write!(f, "Stream is done - whatever that means");
+                write!(f, "Stream is done - whatever that means")
+                    .unwrap_or_else(|_| panic!("Failed to write: Stream is done"));
             }
         };
 
