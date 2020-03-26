@@ -14,9 +14,9 @@ use std::time::Duration;
 use rumq_client;
 use rumq_client::eventloop;
 use rumq_client::MqttOptions;
-use sloggers::Build;
 use sloggers::terminal::{Destination, TerminalLoggerBuilder};
 use sloggers::types::Severity;
+use sloggers::Build;
 use tokio::sync::mpsc::channel;
 
 use domain::current_weather;
@@ -26,6 +26,7 @@ use crate::app::publisher::{Humidity, Pressure, Temperature};
 use crate::app::tasks::*;
 use crate::arguments::{Password, User};
 use crate::weather_client::OpenWeatherMapClientBuilder;
+use std::sync::Arc;
 
 mod app;
 mod arguments;
@@ -39,7 +40,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let settings: arguments::Args = structopt::StructOpt::from_args();
 
     let verbosity = settings.verbose;
-    let logger = create_logger(verbosity)?;
+    let logger = Arc::new(create_logger(verbosity)?);
 
     let city_id = settings.city_id.to_string();
     let api_key = settings.api_key;

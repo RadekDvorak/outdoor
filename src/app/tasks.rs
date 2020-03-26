@@ -13,12 +13,13 @@ use crate::app::publisher::{Humidity, Pressure, Temperature, Topic};
 use crate::arguments::Units;
 use crate::domain::current_weather::CurrentWeather;
 use crate::domain::interfaces::WeatherClient;
+use std::sync::Arc;
 
 pub async fn create_weather_fetcher<T>(
     period: Duration,
     mut channel: Sender<CurrentWeather>,
     api_client: T,
-    logger: Logger,
+    logger: Arc<Logger>,
 ) -> Result<(), anyhow::Error>
 where
     T: WeatherClient + 'static,
@@ -42,7 +43,7 @@ where
 
 pub async fn run_mqtt_loop(
     mut event_loop: MqttEventLoop,
-    logger: Logger,
+    logger: Arc<Logger>,
 ) -> Result<(), anyhow::Error> {
     let mut stream = event_loop.stream();
 
@@ -136,7 +137,7 @@ pub fn create_mqtt_publisher(
     humidity: Humidity,
     mut pub_humidity_tx: Sender<Request>,
     units: Units,
-    logger: Logger,
+    logger: Arc<Logger>,
 ) -> impl Future<Output = ()> + 'static {
     let t_temp = temperature.get_value();
     let t_pressure = pressure.get_value();
