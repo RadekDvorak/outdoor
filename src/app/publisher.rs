@@ -2,6 +2,14 @@ pub trait Topic {
     fn get_value(&self) -> String;
 }
 
+pub trait PublishingInfo {
+    fn get_prefix(&self) -> &Option<String>;
+    fn get_device_name(&self) -> &str;
+    fn get_channel_thermometer(&self) -> &str;
+    fn get_channel_barometer(&self) -> &str;
+    fn get_channel_hygrometer(&self) -> &str;
+}
+
 #[derive(Debug)]
 pub struct Temperature<'a> {
     prefix: &'a str,
@@ -18,6 +26,14 @@ impl<'a> Temperature<'a> {
             device,
             channel,
         }
+    }
+
+    pub fn from_publishing_args(args: &'a dyn PublishingInfo) -> Self {
+        Self::new(
+            &args.get_prefix(),
+            &args.get_device_name(),
+            &args.get_channel_thermometer(),
+        )
     }
 }
 
@@ -46,6 +62,14 @@ impl<'a> Pressure<'a> {
             channel,
         }
     }
+
+    pub fn from_publishing_args(args: &'a dyn PublishingInfo) -> Self {
+        Self::new(
+            &args.get_prefix(),
+            &args.get_device_name(),
+            &args.get_channel_barometer(),
+        )
+    }
 }
 
 impl<'a> Topic for Pressure<'a> {
@@ -72,6 +96,14 @@ impl<'a> Humidity<'a> {
             device,
             channel,
         }
+    }
+
+    pub fn from_publishing_args(args: &'a dyn PublishingInfo) -> Self {
+        Self::new(
+            &args.get_prefix(),
+            &args.get_device_name(),
+            &args.get_channel_hygrometer(),
+        )
     }
 }
 

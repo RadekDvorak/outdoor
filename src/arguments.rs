@@ -2,6 +2,7 @@ use std::num::{NonZeroU16, NonZeroU32};
 use std::str::FromStr;
 use std::string::ParseError;
 
+use crate::app::publisher::PublishingInfo;
 use structopt::StructOpt;
 use uom::si::f32::ThermodynamicTemperature;
 use uom::si::thermodynamic_temperature;
@@ -13,7 +14,7 @@ use url::Url;
     about = "Publishes current weather from OpenWeatherMap to Hardwario/BigClown bus"
 )]
 pub struct Args {
-    #[structopt(short="v", long, parse(from_occurrences))]
+    #[structopt(short = "v", long, parse(from_occurrences))]
     pub verbose: u8,
 
     /// API key from openweathermap.com
@@ -30,15 +31,8 @@ pub struct Args {
     #[structopt(short, long, env, default_value = & Units::CELSIUS.value().unwrap(), possible_values = & Units::variants())]
     pub units: Units,
 
-    /// Identification of this agent in published weather information
-    #[structopt(env)]
-    pub device_name: String,
-
-    /// MQTT topic prefix
-    ///
-    /// Prefix for topics that are defined in https://developers.hardwario.com/interfaces/mqtt-protocol
-    #[structopt(short, long, env)]
-    pub topic_prefix: Option<String>,
+    #[structopt(flatten)]
+    pub publishing: MqttPublishingArgs,
 
     /// Weather API scraping period in seconds
     ///
@@ -61,6 +55,19 @@ pub struct Args {
 
     #[structopt(long, env)]
     pub mqtt_password: Option<Password>,
+}
+
+#[derive(Debug, StructOpt)]
+pub struct MqttPublishingArgs {
+    /// Identification of this agent in published weather information
+    #[structopt(env)]
+    pub device_name: String,
+
+    /// MQTT topic prefix
+    ///
+    /// Prefix for topics that are defined in https://developers.hardwario.com/interfaces/mqtt-protocol
+    #[structopt(short, long, env)]
+    pub topic_prefix: Option<String>,
 
     #[structopt(long, env, default_value = "0:0")]
     pub channel_thermometer: String,
@@ -70,6 +77,28 @@ pub struct Args {
 
     #[structopt(long, env, default_value = "0:0")]
     pub channel_hygrometer: String,
+}
+
+impl PublishingInfo for MqttPublishingArgs {
+    fn get_prefix(&self) -> &Option<String> {
+        &self.topic_prefix
+    }
+
+    fn get_device_name(&self) -> &str {
+        &self.device_name
+    }
+
+    fn get_channel_thermometer(&self) -> &str {
+        &self.channel_thermometer
+    }
+
+    fn get_channel_barometer(&self) -> &str {
+        &self.channel_barometer
+    }
+
+    fn get_channel_hygrometer(&self) -> &str {
+        &self.channel_hygrometer
+    }
 }
 
 #[derive(Debug)]

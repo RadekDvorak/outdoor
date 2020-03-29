@@ -77,23 +77,9 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let units = settings.units;
 
-    let temperature = Temperature::new(
-        &settings.topic_prefix,
-        &settings.device_name,
-        &settings.channel_thermometer,
-    );
-
-    let pressure = Pressure::new(
-        &settings.topic_prefix,
-        &settings.device_name,
-        &settings.channel_barometer,
-    );
-
-    let humidity = Humidity::new(
-        &settings.topic_prefix,
-        &settings.device_name,
-        &settings.channel_hygrometer,
-    );
+    let temperature = Temperature::from_publishing_args(&settings.publishing);
+    let pressure = Pressure::from_publishing_args(&settings.publishing);
+    let humidity = Humidity::from_publishing_args(&settings.publishing);
 
     let publisher_task = create_mqtt_publisher(
         weather_rx,
