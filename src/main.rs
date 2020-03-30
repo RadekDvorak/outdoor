@@ -38,8 +38,7 @@ mod weather_types;
 async fn main() -> Result<(), anyhow::Error> {
     let settings: arguments::Args = structopt::StructOpt::from_args();
 
-    let verbosity = settings.verbose;
-    let logger = Arc::new(create_logger(verbosity)?);
+    let logger = Arc::new(create_logger(settings.verbose)?);
 
     let city_id = settings.city_id.to_string();
     let api_key = settings.api_key;
