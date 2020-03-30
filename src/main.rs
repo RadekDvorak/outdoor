@@ -114,7 +114,7 @@ fn create_logger(verbosity: u8) -> anyhow::Result<slog::Logger> {
 
 fn create_connection_options(mqtt_connection: MqttConnectionArgs) -> MqttOptions {
     let mut mqtt_options = MqttOptions::new(
-        "weather",
+        mqtt_connection.mqtt_id,
         mqtt_connection.mqtt_host,
         mqtt_connection.mqtt_port.get(),
     );
