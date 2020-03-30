@@ -78,9 +78,7 @@ async fn main() -> Result<(), anyhow::Error> {
         temperature,
         requests_tx.clone(),
         pressure,
-        requests_tx.clone(),
         humidity,
-        requests_tx.clone(),
         units,
         logger.clone(),
     );

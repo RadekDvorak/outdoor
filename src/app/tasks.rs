@@ -127,21 +127,21 @@ impl std::fmt::Display for MqttTaskError {
 
 impl std::error::Error for MqttTaskError {}
 
-#[allow(clippy::too_many_arguments)]
 pub fn create_mqtt_publisher(
     mut weather_rx: Receiver<CurrentWeather>,
     temperature: Temperature,
     mut temperature_tx: Sender<Request>,
     pressure: Pressure,
-    mut pub_pressure_tx: Sender<Request>,
     humidity: Humidity,
-    mut pub_humidity_tx: Sender<Request>,
     units: Units,
     logger: Arc<Logger>,
 ) -> impl Future<Output = ()> + 'static {
     let t_temp = temperature.get_value();
     let t_pressure = pressure.get_value();
     let t_humidity = humidity.get_value();
+
+    let mut pub_pressure_tx = temperature_tx.clone();
+    let mut pub_humidity_tx = temperature_tx.clone();
 
     async move {
         while let Some(v) = weather_rx.recv().await {
