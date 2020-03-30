@@ -64,6 +64,9 @@ pub struct MqttConnectionArgs {
 
     #[structopt(long, env, hidden(true), default_value = "weather")]
     pub mqtt_id: String,
+
+    #[structopt(long, env, hidden(true), default_value = "30")]
+    pub mqtt_keepalive: u16,
 }
 
 #[derive(Debug, StructOpt)]

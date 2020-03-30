@@ -129,7 +129,7 @@ fn create_connection_options(mqtt_connection: MqttConnectionArgs) -> MqttOptions
     }
 
     mqtt_options
-        .set_keep_alive(30)
+        .set_keep_alive(mqtt_connection.mqtt_keepalive)
         .set_throttle(Duration::from_secs(1));
 
     mqtt_options
