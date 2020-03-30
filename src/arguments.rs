@@ -67,6 +67,9 @@ pub struct MqttConnectionArgs {
 
     #[structopt(long, env, hidden(true), default_value = "30")]
     pub mqtt_keepalive: u16,
+
+    #[structopt(long, env, hidden(true), default_value = "1")]
+    pub mqtt_throttle: u64,
 }
 
 #[derive(Debug, StructOpt)]
