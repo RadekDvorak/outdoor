@@ -44,6 +44,12 @@ pub struct Args {
     #[structopt(long)]
     pub api_base: Option<Url>,
 
+    #[structopt(flatten)]
+    pub mqtt_connection: MqttConnectionArgs,
+}
+
+#[derive(Debug, StructOpt)]
+pub struct MqttConnectionArgs {
     #[structopt(env)]
     pub mqtt_host: String,
 

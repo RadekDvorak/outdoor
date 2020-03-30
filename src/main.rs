@@ -8,7 +8,6 @@ extern crate sloggers;
 extern crate uom;
 extern crate url;
 
-use std::num::NonZeroU16;
 use std::time::Duration;
 
 use rumq_client;
@@ -24,7 +23,7 @@ use location_specifier::LocationSpecifier;
 
 use crate::app::publisher::{Humidity, Pressure, Temperature};
 use crate::app::tasks::*;
-use crate::arguments::{Password, User};
+use crate::arguments::MqttConnectionArgs;
 use crate::weather_client::OpenWeatherMapClientBuilder;
 use std::sync::Arc;
 
@@ -66,14 +65,8 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let (requests_tx, requests_rx) = channel(10);
 
-    let mqtt_host = settings.mqtt_host;
-    let mqtt_port = settings.mqtt_port;
-    let mqtt_credentials = match (settings.mqtt_user, settings.mqtt_password) {
-        (Some(u), Some(p)) => Some((u, p)),
-        _ => None,
-    };
-    let mqttoptions = create_connection_options(mqtt_host, mqtt_port, mqtt_credentials);
-    let eventloop = eventloop(mqttoptions, requests_rx);
+    let mqtt_options = create_connection_options(settings.mqtt_connection);
+    let eventloop = eventloop(mqtt_options, requests_rx);
 
     let units = settings.units;
 
@@ -119,19 +112,22 @@ fn create_logger(verbosity: u8) -> anyhow::Result<slog::Logger> {
     Ok(logger)
 }
 
-fn create_connection_options(
-    host: String,
-    port: NonZeroU16,
-    credentials: Option<(User, Password)>,
-) -> MqttOptions {
-    let mut mqtt_options = MqttOptions::new("weather", host, port.get());
+fn create_connection_options(mqtt_connection: MqttConnectionArgs) -> MqttOptions {
+    let mut mqtt_options = MqttOptions::new(
+        "weather",
+        mqtt_connection.mqtt_host,
+        mqtt_connection.mqtt_port.get(),
+    );
 
-    if let Some((user, password)) = credentials {
-        let u: String = user.into();
-        let p: String = password.into();
+    if let Some(user) = mqtt_connection.mqtt_user {
+        if let Some(password) = mqtt_connection.mqtt_password {
+            let u: String = user.into();
+            let p: String = password.into();
 
-        mqtt_options.set_credentials(u, p);
+            mqtt_options.set_credentials(u, p);
+        }
     }
+
     mqtt_options
         .set_keep_alive(30)
         .set_throttle(Duration::from_secs(1));
