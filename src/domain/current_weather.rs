@@ -159,9 +159,9 @@ mod test {
     #[test]
     fn humidity_ok() {
         let t = Humidity::new(32.0);
-        let v: f32 = t.into();
+        let v: &f32 = t.as_ref();
 
-        assert!((32.0 - v).abs() < EPSILON);
+        assert!((32.0 - *v).abs() < EPSILON);
     }
 
     #[test]
