@@ -10,7 +10,6 @@ extern crate url;
 
 use std::time::Duration;
 
-use rumq_client;
 use rumq_client::eventloop;
 use rumq_client::MqttOptions;
 use sloggers::terminal::{Destination, TerminalLoggerBuilder};
