@@ -12,9 +12,6 @@ use std::time::Duration;
 
 use rumq_client::eventloop;
 use rumq_client::MqttOptions;
-use sloggers::terminal::{Destination, TerminalLoggerBuilder};
-use sloggers::types::Severity;
-use sloggers::Build;
 use tokio::sync::mpsc::channel;
 
 use domain::current_weather;
@@ -37,7 +34,7 @@ mod weather_types;
 async fn main() -> Result<(), anyhow::Error> {
     let settings: arguments::Args = structopt::StructOpt::from_args();
 
-    let logger = Arc::new(create_logger(settings.verbose)?);
+    let logger = Arc::new(app::logging::create_logger(settings.verbose)?);
 
     let city_id = settings.city_id.to_string();
     let api_key = settings.api_key;
@@ -99,15 +96,6 @@ async fn main() -> Result<(), anyhow::Error> {
     }
 }
 
-fn create_logger(verbosity: u8) -> anyhow::Result<slog::Logger> {
-    let mut logger_builder = TerminalLoggerBuilder::new();
-    logger_builder.level(get_severity(verbosity));
-    logger_builder.destination(Destination::Stderr);
-    let logger = logger_builder.build()?;
-
-    Ok(logger)
-}
-
 fn create_connection_options(mqtt_connection: MqttConnectionArgs) -> MqttOptions {
     let mut mqtt_options = MqttOptions::new(
         mqtt_connection.mqtt_id,
@@ -129,14 +117,4 @@ fn create_connection_options(mqtt_connection: MqttConnectionArgs) -> MqttOptions
         .set_throttle(Duration::from_millis(mqtt_connection.mqtt_throttle_ms));
 
     mqtt_options
-}
-
-fn get_severity(verbosity: u8) -> Severity {
-    match verbosity {
-        std::u8::MIN..=0 => Severity::Error,
-        1 => Severity::Warning,
-        2 => Severity::Info,
-        3 => Severity::Debug,
-        4..=std::u8::MAX => Severity::Trace,
-    }
 }
