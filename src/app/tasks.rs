@@ -76,7 +76,6 @@ pub async fn run_mqtt_loop(
     Ok(())
 }
 
-
 pub fn create_mqtt_publisher(
     mut weather_rx: Receiver<CurrentWeather>,
     temperature: Temperature,
