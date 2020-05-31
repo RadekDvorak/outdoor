@@ -45,6 +45,19 @@ Some parts of the code are covered by tests. To check them, run:
 cargo test
 ```
 
+## Cross compiling 
+ - how to run on Turris Omnia?
+
+1. Test with `cross test --target armv7-unknown-linux-musleabihf`.
+2. Compile with `cross build --target armv7-unknown-linux-musleabihf --release`
+3. Strip the binary:
+```bash
+docker run --rm -it \
+    -v $PWD/target/armv7-unknown-linux-musleabihf/release/:/project \
+    rustembedded/cross:armv7-unknown-linux-musleabihf-0.2.0 \
+    /usr/local/arm-linux-musleabihf/bin/strip /project/outdoor
+```
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
