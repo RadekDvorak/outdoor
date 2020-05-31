@@ -67,7 +67,7 @@ pub async fn run_mqtt_loop(
                 slog::slog_debug!(logger, "Unsuback = {:?}", _usa);
             }
             Notification::Abort(error) => {
-                slog::slog_debug!(logger, "Requests Done");
+                slog::slog_debug!(logger, "Requests abort");
                 return Err(error.into());
             }
         }
