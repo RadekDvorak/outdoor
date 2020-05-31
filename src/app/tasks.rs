@@ -116,8 +116,7 @@ pub fn create_mqtt_publisher(
 }
 
 fn create_publish_request(msg: String, top: &str) -> Request {
-    let topic = top.to_owned();
     let payload: Vec<u8> = msg.into_bytes();
-    let publish = Publish::new(&topic, QoS::AtLeastOnce, payload);
+    let publish = Publish::new(top, QoS::AtLeastOnce, payload);
     Request::Publish(publish)
 }
