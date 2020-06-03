@@ -14,29 +14,47 @@ use crate::arguments::Units;
 use crate::domain::current_weather::CurrentWeather;
 use crate::domain::interfaces::WeatherClient;
 
-pub async fn create_weather_fetcher<T>(
-    period: Duration,
-    mut channel: Sender<CurrentWeather>,
-    api_client: T,
-    logger: Arc<Logger>,
-) -> Result<(), anyhow::Error>
+pub struct WeatherFetcherBuilder<T>
 where
     T: WeatherClient + 'static,
 {
-    let mut interval = time::interval(period);
+    channel: Sender<CurrentWeather>,
+    api_client: T,
+    logger: Arc<Logger>,
+}
 
-    loop {
-        interval.tick().await;
+impl<T> WeatherFetcherBuilder<T>
+where
+    T: WeatherClient + 'static,
+{
+    pub fn new(
+        channel: Sender<CurrentWeather>,
+        api_client: T,
+        logger: Arc<Logger>,
+    ) -> WeatherFetcherBuilder<T> {
+        WeatherFetcherBuilder {
+            channel,
+            api_client,
+            logger,
+        }
+    }
 
-        let result = api_client.get_current_weather().await;
-        match result {
-            Err(e) => {
-                slog::slog_error!(logger, "{:#?}", e);
-            }
-            Ok(v) => {
-                channel.send(v).await?;
-            }
-        };
+    pub async fn build_task(mut self, period: Duration) -> Result<(), anyhow::Error> {
+        let mut interval = time::interval(period);
+
+        loop {
+            interval.tick().await;
+
+            let result = self.api_client.get_current_weather().await;
+            match result {
+                Err(e) => {
+                    slog::slog_error!(self.logger, "{:#?}", e);
+                }
+                Ok(v) => {
+                    self.channel.send(v).await?;
+                }
+            };
+        }
     }
 }
 

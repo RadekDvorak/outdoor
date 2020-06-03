@@ -51,12 +51,12 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let api_client = builder.build()?;
 
-    let handle_api = tokio::spawn(create_weather_fetcher(
-        period,
-        weather_tx,
-        api_client,
-        logger.clone(),
-    ));
+    let weather_fetcher = {
+        let builder = WeatherFetcherBuilder::new(weather_tx, api_client, logger.clone());
+        builder.build_task(period)
+    };
+
+    let weather_handle = tokio::spawn(weather_fetcher);
 
     let (requests_tx, requests_rx) = channel(10);
 
@@ -85,7 +85,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let error_msg: Option<String>;
     tokio::select!(
-        v = handle_api => {error_msg = Some(format!("Weather fetcher finished: {:?}", v));},
+        v = weather_handle => {error_msg = Some(format!("Weather fetcher finished: {:?}", v));},
         v = handle_mqtt => {error_msg = Some(format!("Publisher task finished: {:?}", v));},
         v = handle_mqtt_loop => {error_msg = Some(format!("MQTT loop finished: {:?}", v));},
     );
