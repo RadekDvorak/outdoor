@@ -21,6 +21,9 @@ pub struct Args {
     #[structopt(env)]
     pub api_key: ApiKey,
 
+    #[structopt(long, env)]
+    pub abort_on_api_error: bool,
+
     /// OpenWeatherMap city ID
     ///
     /// Use a city ID as recomended in https://openweathermap.org/appid

@@ -14,6 +14,11 @@ use crate::arguments::Units;
 use crate::domain::current_weather::CurrentWeather;
 use crate::domain::interfaces::WeatherClient;
 
+pub enum OnErrorBehaviour {
+    Continue,
+    Abort,
+}
+
 pub struct WeatherFetcherBuilder<T>
 where
     T: WeatherClient + 'static,
@@ -21,6 +26,7 @@ where
     channel: Sender<CurrentWeather>,
     api_client: T,
     logger: Arc<Logger>,
+    error_behaviour: OnErrorBehaviour,
 }
 
 impl<T> WeatherFetcherBuilder<T>
@@ -36,7 +42,13 @@ where
             channel,
             api_client,
             logger,
+            error_behaviour: OnErrorBehaviour::Continue,
         }
+    }
+
+    #[allow(dead_code)]
+    pub fn set_error_behaviour(&mut self, behaviour: OnErrorBehaviour) {
+        self.error_behaviour = behaviour;
     }
 
     pub async fn build_task(mut self, period: Duration) -> Result<(), anyhow::Error> {
@@ -48,7 +60,16 @@ where
             let result = self.api_client.get_current_weather().await;
             match result {
                 Err(e) => {
-                    slog::slog_error!(self.logger, "{:#?}", e);
+                    match self.error_behaviour {
+                        OnErrorBehaviour::Abort => {
+                            slog::slog_error!(self.logger, "{:#?}, aborting.", e);
+
+                            return Err(e);
+                        }
+                        OnErrorBehaviour::Continue => {
+                            slog::slog_error!(self.logger, "{:#?}.", e);
+                        }
+                    };
                 }
                 Ok(v) => {
                     self.channel.send(v).await?;

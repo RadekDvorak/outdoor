@@ -52,7 +52,12 @@ async fn main() -> Result<(), anyhow::Error> {
     let api_client = builder.build()?;
 
     let weather_fetcher = {
-        let builder = WeatherFetcherBuilder::new(weather_tx, api_client, logger.clone());
+        let mut builder = WeatherFetcherBuilder::new(weather_tx, api_client, logger.clone());
+
+        if settings.abort_on_api_error {
+            builder.set_error_behaviour(OnErrorBehaviour::Abort);
+        }
+
         builder.build_task(period)
     };
 
