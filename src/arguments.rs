@@ -21,7 +21,8 @@ pub struct Args {
     #[structopt(env)]
     pub api_key: ApiKey,
 
-    #[structopt(long, env)]
+    /// Aborts the application if OpenWeatherMap request fails
+    #[structopt(long)]
     pub abort_on_api_error: bool,
 
     /// OpenWeatherMap city ID
