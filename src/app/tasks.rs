@@ -14,29 +14,68 @@ use crate::arguments::Units;
 use crate::domain::current_weather::CurrentWeather;
 use crate::domain::interfaces::WeatherClient;
 
-pub async fn create_weather_fetcher<T>(
-    period: Duration,
-    mut channel: Sender<CurrentWeather>,
-    api_client: T,
-    logger: Arc<Logger>,
-) -> Result<(), anyhow::Error>
+pub enum OnErrorBehaviour {
+    Continue,
+    Abort,
+}
+
+pub struct WeatherFetcherBuilder<T>
 where
     T: WeatherClient + 'static,
 {
-    let mut interval = time::interval(period);
+    channel: Sender<CurrentWeather>,
+    api_client: T,
+    logger: Arc<Logger>,
+    error_behaviour: OnErrorBehaviour,
+}
 
-    loop {
-        interval.tick().await;
+impl<T> WeatherFetcherBuilder<T>
+where
+    T: WeatherClient + 'static,
+{
+    pub fn new(
+        channel: Sender<CurrentWeather>,
+        api_client: T,
+        logger: Arc<Logger>,
+    ) -> WeatherFetcherBuilder<T> {
+        WeatherFetcherBuilder {
+            channel,
+            api_client,
+            logger,
+            error_behaviour: OnErrorBehaviour::Continue,
+        }
+    }
 
-        let result = api_client.get_current_weather().await;
-        match result {
-            Err(e) => {
-                slog::slog_error!(logger, "{:#?}", e);
-            }
-            Ok(v) => {
-                channel.send(v).await?;
-            }
-        };
+    #[allow(dead_code)]
+    pub fn set_error_behaviour(&mut self, behaviour: OnErrorBehaviour) {
+        self.error_behaviour = behaviour;
+    }
+
+    pub async fn build_task(mut self, period: Duration) -> Result<(), anyhow::Error> {
+        let mut interval = time::interval(period);
+
+        loop {
+            interval.tick().await;
+
+            let result = self.api_client.get_current_weather().await;
+            match result {
+                Err(e) => {
+                    match self.error_behaviour {
+                        OnErrorBehaviour::Abort => {
+                            slog::slog_error!(self.logger, "{:#?}, aborting.", e);
+
+                            return Err(e);
+                        }
+                        OnErrorBehaviour::Continue => {
+                            slog::slog_error!(self.logger, "{:#?}.", e);
+                        }
+                    };
+                }
+                Ok(v) => {
+                    self.channel.send(v).await?;
+                }
+            };
+        }
     }
 }
 
