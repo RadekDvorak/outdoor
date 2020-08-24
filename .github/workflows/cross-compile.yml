@@ -28,3 +28,9 @@ jobs:
           use-cross: true
           command: build
           args: --release --target=${{ matrix.target }}
+
+      - name: Archive binary artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: outdoor-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/outdoor
