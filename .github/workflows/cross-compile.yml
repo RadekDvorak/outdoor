@@ -34,14 +34,14 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
-          command: /usr/local/arm-linux-musleabihf/bin/strip
-          args: -s target/${{ matrix.target }}/release/outdoor -o target/${{ matrix.target }}/release/outdoor.stripped
+          command: run
+          args: /usr/local/arm-linux-musleabihf/bin/strip -s target/${{ matrix.target }}/release/outdoor -o target/${{ matrix.target }}/release/outdoor.stripped
 
       - name: Strip x86
         if: ${{ matrix.target }} = "x86_64-unknown-linux-musl"
         uses: actions-rs/cargo@v1
         with:
           use-cross: true
-          command: /usr/bin/strip
-          args: -s target/${{ matrix.target }}/release/outdoor -o target/${{ matrix.target }}/release/outdoor.stripped
+          command: run
+          args: /usr/bin/strip -s target/${{ matrix.target }}/release/outdoor -o target/${{ matrix.target }}/release/outdoor.stripped
 
