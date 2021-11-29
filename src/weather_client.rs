@@ -55,7 +55,7 @@ where
 {
     pub fn new(location_specifier: LocationSpecifier<'a>, api_key: T) -> Self {
         let default_base_url = "https://api.openweathermap.org/data/2.5/";
-        let base_url: Url = Url::parse(&default_base_url)
+        let base_url: Url = Url::parse(default_base_url)
             .unwrap_or_else(|_| panic!("Broken default hardcoded base URL {}", &default_base_url));
 
         OpenWeatherMapClientBuilder {

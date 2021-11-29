@@ -58,9 +58,11 @@ pub struct ErrorReport {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Sys {
-    #[serde(rename = "type")]
+    #[serde(rename = "type", skip_deserializing)]
     pub message_type: u32,
+    #[serde(skip_deserializing)]
     pub id: u32,
+    #[serde(skip_deserializing)]
     pub message: Option<f32>,
     pub country: String,
     pub sunrise: u64,
@@ -80,5 +82,6 @@ pub struct WeatherReportCurrent {
     pub sys: Sys,
     pub id: u64,
     pub name: String,
+    #[serde(skip_deserializing)]
     pub cod: u16,
 }

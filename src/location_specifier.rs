@@ -37,10 +37,10 @@ impl<'a> LocationSpecifier<'a> {
     pub fn format(&'a self) -> Vec<(String, String)> {
         match &self {
             LocationSpecifier::CityAndCountryName { city, country } => {
-                if *country == "" {
-                    return vec![("q".to_string(), (*city).to_string())];
+                return if country.is_empty() {
+                    vec![("q".to_string(), (*city).to_string())]
                 } else {
-                    return vec![("q".to_string(), format!("{},{}", city, country))];
+                    vec![("q".to_string(), format!("{},{}", city, country))]
                 }
             }
             LocationSpecifier::CityId(id) => {
@@ -53,10 +53,10 @@ impl<'a> LocationSpecifier<'a> {
                 ];
             }
             LocationSpecifier::ZipCode { zip, country } => {
-                if *country == "" {
-                    return vec![("zip".to_string(), (*zip).to_string())];
+                return if country.is_empty() {
+                    vec![("zip".to_string(), (*zip).to_string())]
                 } else {
-                    return vec![("zip".to_string(), format!("{},{}", zip, country))];
+                    vec![("zip".to_string(), format!("{},{}", zip, country))]
                 }
             }
             LocationSpecifier::BoundingBox {

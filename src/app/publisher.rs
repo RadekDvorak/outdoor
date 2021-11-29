@@ -30,9 +30,9 @@ impl<'a> Temperature<'a> {
 
     pub fn from_publishing_args(args: &'a dyn PublishingInfo) -> Self {
         Self::new(
-            &args.get_prefix(),
-            &args.get_device_name(),
-            &args.get_channel_thermometer(),
+            args.get_prefix(),
+            args.get_device_name(),
+            args.get_channel_thermometer(),
         )
     }
 }
@@ -65,9 +65,9 @@ impl<'a> Pressure<'a> {
 
     pub fn from_publishing_args(args: &'a dyn PublishingInfo) -> Self {
         Self::new(
-            &args.get_prefix(),
-            &args.get_device_name(),
-            &args.get_channel_barometer(),
+            args.get_prefix(),
+            args.get_device_name(),
+            args.get_channel_barometer(),
         )
     }
 }
@@ -100,9 +100,9 @@ impl<'a> Humidity<'a> {
 
     pub fn from_publishing_args(args: &'a dyn PublishingInfo) -> Self {
         Self::new(
-            &args.get_prefix(),
-            &args.get_device_name(),
-            &args.get_channel_hygrometer(),
+            args.get_prefix(),
+            args.get_device_name(),
+            args.get_channel_hygrometer(),
         )
     }
 }
