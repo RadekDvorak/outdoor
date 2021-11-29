@@ -32,7 +32,7 @@ pub struct Args {
     #[structopt(env)]
     pub city_id: u32,
 
-    #[structopt(short, long, env, default_value = & Units::CELSIUS.value().unwrap(), possible_values = & Units::variants())]
+    #[structopt(short, long, env, default_value = & Units::Celsius.value().unwrap(), possible_values = & Units::variants())]
     pub units: Units,
 
     #[structopt(flatten)]
@@ -122,25 +122,25 @@ impl PublishingInfo for MqttPublishingArgs {
 
 #[derive(Debug)]
 pub enum Units {
-    KELVIN,
-    FAHRENHEIT,
-    CELSIUS,
+    Kelvin,
+    Fahrenheit,
+    Celsius,
 }
 
 impl Units {
     pub fn convert_temperature(&self, temperature: ThermodynamicTemperature) -> f32 {
         match *self {
-            Units::KELVIN => temperature.get::<thermodynamic_temperature::kelvin>(),
-            Units::FAHRENHEIT => temperature.get::<thermodynamic_temperature::degree_fahrenheit>(),
-            Units::CELSIUS => temperature.get::<thermodynamic_temperature::degree_celsius>(),
+            Units::Kelvin => temperature.get::<thermodynamic_temperature::kelvin>(),
+            Units::Fahrenheit => temperature.get::<thermodynamic_temperature::degree_fahrenheit>(),
+            Units::Celsius => temperature.get::<thermodynamic_temperature::degree_celsius>(),
         }
     }
 
     pub fn value(&self) -> Option<&'static str> {
         match *self {
-            Units::CELSIUS => Some("celsius"),
-            Units::FAHRENHEIT => Some("fahrenheit"),
-            Units::KELVIN => None,
+            Units::Celsius => Some("celsius"),
+            Units::Fahrenheit => Some("fahrenheit"),
+            Units::Kelvin => None,
         }
     }
 
@@ -153,9 +153,9 @@ impl FromStr for Units {
     type Err = ParseError;
     fn from_str(day: &str) -> Result<Self, Self::Err> {
         match day {
-            "celsius" => Ok(Units::CELSIUS),
-            "fahrenheit" => Ok(Units::FAHRENHEIT),
-            "kelvin" => Ok(Units::KELVIN),
+            "celsius" => Ok(Units::Celsius),
+            "fahrenheit" => Ok(Units::Fahrenheit),
+            "kelvin" => Ok(Units::Kelvin),
             _ => unreachable!(),
         }
     }
@@ -166,9 +166,9 @@ pub struct ApiKey {
     value: String,
 }
 
-impl Into<String> for ApiKey {
-    fn into(self) -> String {
-        self.value
+impl From<ApiKey> for String {
+    fn from(k: ApiKey) -> Self {
+        k.value
     }
 }
 
@@ -193,9 +193,9 @@ impl FromStr for User {
     }
 }
 
-impl Into<String> for User {
-    fn into(self) -> String {
-        self.0
+impl From<User> for String {
+    fn from(u: User) -> Self {
+        u.0
     }
 }
 
@@ -210,8 +210,8 @@ impl FromStr for Password {
     }
 }
 
-impl Into<String> for Password {
-    fn into(self) -> String {
-        self.0
+impl From<Password> for String {
+    fn from(p: Password) -> Self {
+        p.0
     }
 }

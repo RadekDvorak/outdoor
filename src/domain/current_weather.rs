@@ -71,7 +71,7 @@ impl Humidity {
     #[allow(dead_code)]
     pub fn is_valid(humidity: f32) -> bool {
         let rounded = Self::round(humidity);
-        rounded >= 0.0 && rounded <= 100.0
+        (0.0..=100.0).contains(&rounded)
     }
 }
 
